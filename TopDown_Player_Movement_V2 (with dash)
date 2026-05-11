@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-@export var speed = 300
+@export var speed = 500
 @export var accel = 2000
 @export var frict = 2400
 @export var dashenabled = true
@@ -22,9 +22,11 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 
 func dash():
-	speed *= 3
+	speed *= 15
+	accel *= 2
 	dashenabled = false
 	await get_tree().create_timer(0.3).timeout
 	speed = 300
-	await get_tree().create_timer(5.0).timeout
+	accel = 2000
+	await get_tree().create_timer(2.3).timeout
 	dashenabled = true
