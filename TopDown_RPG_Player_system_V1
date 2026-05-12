@@ -1,0 +1,69 @@
+#in character body 2D:
+
+extends CharacterBody2D
+
+signal hp_alterado(hp)
+
+@export var speed = 500
+@export var accel = 2000
+@export var frict = 2400
+@export var dashenabled = true
+@export var maxhp = 100
+@export var currenthp = 100
+
+func _process(_delta: float) -> void:
+	
+	if Input.is_action_just_pressed("Dano"):
+		tomar_dano()
+		
+	if dashenabled:
+		if Input.is_action_just_pressed("ui_accept"):
+			dash()
+
+func _physics_process(_delta: float) -> void:
+	var direction = Input.get_vector("A", "D", "W", "S")
+	
+	if direction:
+		velocity = velocity.move_toward(direction * speed, accel * _delta)
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, frict * _delta)
+		
+	move_and_slide()
+
+func dash():
+	speed *= 15
+	accel *= 2
+	dashenabled = false
+	await get_tree().create_timer(0.3).timeout
+	speed = 300
+	accel = 2000
+	await get_tree().create_timer(2.3).timeout
+	dashenabled = true
+	
+func tomar_dano():
+	currenthp -= 10
+	currenthp = clamp(currenthp, 0, maxhp) # Impede a vida de ser menor que 0
+	hp_alterado.emit(currenthp) # Envia o sinal com o valor novo
+	print("sofreu dano! hp atual: ", currenthp)
+
+
+#in CanvasLayer -> Label:
+
+extends Label
+
+func _on_player_hp_alterado(hp: Variant) -> void:
+	text = "HP: " + str(hp) + " / 100"
+
+
+How to use?
+Create a CharacterBody2D and add a CollisionShape2D and a Sprite2D as children.
+
+Attach the first script to the CharacterBody2D.
+
+Create a CanvasLayer node.
+
+Inside the CanvasLayer, add a Label and set its text to: "HP: 100 / 100".
+
+Attach a script to the Label, then connect the CharacterBody2D signal to it.
+
+Delete the default code in the Label script and paste the second code there.
