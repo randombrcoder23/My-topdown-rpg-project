@@ -1,0 +1,68 @@
+extends CharacterBody2D
+
+signal hp_alterado(hp)
+
+@export var direction = Vector2.ZERO
+@onready var animation = $AnimatedSprite2D
+@export var speed = 500
+@export var accel = 2000
+@export var frict = 2400
+@export var dashenabled = true
+@export var maxhp = 100
+@export var currenthp = 100
+
+func _process(_delta: float) -> void:
+	
+	if direction.y > 0:
+		$AnimatedSprite2D.play("walk_down")
+	
+	elif  direction.y < 0:
+		$AnimatedSprite2D.play("walk_up")
+	
+	elif  direction.x > 0:
+		$AnimatedSprite2D.play("walk_left")
+	
+	elif  direction.x < 0:
+		$AnimatedSprite2D.play("walk_right")
+	
+	else:
+		$AnimatedSprite2D.play("idle")
+	
+	if Input.is_action_just_pressed("Dano"):
+		tomar_dano()
+		
+	if dashenabled:
+		if Input.is_action_just_pressed("ui_accept"):
+			dash()
+		
+		
+func _physics_process(_delta: float) -> void:
+	
+	direction = Input.get_vector("A", "D", "W", "S")
+	
+	if direction:
+		velocity = velocity.move_toward(direction * speed, accel * _delta)
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, frict * _delta)
+		
+	move_and_slide()
+
+func dash():
+	speed *= 15
+	accel *= 2
+	dashenabled = false
+	await get_tree().create_timer(0.3).timeout
+	speed = 300
+	accel = 2000
+	await get_tree().create_timer(2.3).timeout
+	dashenabled = true
+	
+func tomar_dano():
+	currenthp -= 10
+	currenthp = clamp(currenthp, 0, maxhp) # Impede a vida de ser menor que 0
+	hp_alterado.emit(currenthp) # Envia o sinal com o valor novo
+	print("sofreu dano! hp atual: ", currenthp)
+
+
+
+how to use: just create one characterbody2D with 4 animation, create a new scene, conect the player scene to principal scene and place this script in the player :), this code inclue the hp life bar, if you dont want de life bar just delete
